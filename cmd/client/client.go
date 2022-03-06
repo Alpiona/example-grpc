@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/alpiona/example-grpc/pb"
 	"google.golang.org/grpc"
@@ -19,7 +20,8 @@ func main() {
 
 	client := pb.NewUserServiceClient(connection)
 	//AddUser(client)
-	AddUserVerbose(client)
+	// AddUserVerbose(client)
+	AddUsers(client)
 }
 
 func AddUser(client pb.UserServiceClient) {
@@ -59,4 +61,51 @@ func AddUserVerbose(client pb.UserServiceClient) {
 		}
 		fmt.Println("Status:", stream.Status, " - ", stream.GetUser())
 	}
+}
+
+func AddUsers(client pb.UserServiceClient) {
+	reqs := []*pb.User{
+		&pb.User{
+			Id:    "a1",
+			Name:  "Andre",
+			Email: "and@and.com",
+		},
+		&pb.User{
+			Id:    "a2",
+			Name:  "Andre2",
+			Email: "and2@and.com",
+		},
+		&pb.User{
+			Id:    "a3",
+			Name:  "Andre3",
+			Email: "and3@and.com",
+		},
+		&pb.User{
+			Id:    "a4",
+			Name:  "Andre4",
+			Email: "and4@and.com",
+		},
+		&pb.User{
+			Id:    "a5",
+			Name:  "Andre5",
+			Email: "and5@and.com",
+		},
+	}
+
+	stream, err := client.AddUsers(context.Background())
+	if err != nil {
+		log.Fatalf("Error creating request: %v", err)
+	}
+
+	for _, req := range reqs {
+		stream.Send(req)
+		time.Sleep(time.Second * 3)
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Error receiving response: %v", err)
+	}
+
+	fmt.Println(res)
 }
