@@ -33,7 +33,6 @@ func (*UserService) AddUser(ctx context.Context, req *pb.User) (*pb.User, error)
 		Name:  req.GetName(),
 		Email: req.GetEmail(),
 	}, nil
-
 }
 
 func (*UserService) AddUserVerbose(req *pb.User, stream pb.UserService_AddUserVerboseServer) error {
@@ -75,7 +74,6 @@ func (*UserService) AddUserVerbose(req *pb.User, stream pb.UserService_AddUserVe
 	time.Sleep(time.Second * 3)
 
 	return nil
-
 }
 
 func (*UserService) AddUsers(stream pb.UserService_AddUsersServer) error {
@@ -100,5 +98,24 @@ func (*UserService) AddUsers(stream pb.UserService_AddUsersServer) error {
 		})
 		fmt.Println("Adding", req.GetName())
 	}
+}
 
+func (*UserService) AddUserStreamBoth(stream pb.UserService_AddUserStreamBothServer) error {
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error receiving stream from the client: %v", err)
+		}
+
+		err = stream.Send(&pb.UserResultStream{
+			Status: "Added",
+			User:   req,
+		})
+		if err != nil {
+			log.Fatalf("Error sending stream to the client: %v", err)
+		}
+	}
 }
